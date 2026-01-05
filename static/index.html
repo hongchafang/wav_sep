@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能音频分析终端</title>
+    <link rel="icon" href="data:,">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #111827;
+            --text-sub: #6b7280;
+            --border: #e5e7eb;
+            
+            --primary: #3b82f6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --reset: #4f46e5;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans SC', sans-serif;
+            background-color: var(--bg-color); color: var(--text-main);
+            margin: 0; padding: 24px; display: flex; justify-content: center;
+        }
+        .container { width: 100%; max-width: 1280px; display: flex; flex-direction: column; gap: 24px; }
+
+        /* 顶部布局：左侧控制面板，右侧雷达，宽度固定分配 */
+        .top-section { display: grid; grid-template-columns: 1fr 380px; gap: 24px; align-items: stretch; }
+        @media (max-width: 900px) { .top-section { grid-template-columns: 1fr; } }
+
+        .card {
+            background: var(--card-bg); border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid var(--border);
+            padding: 24px; display: flex; flex-direction: column; position: relative;
+        }
+
+        h2 { margin: 0; font-size: 1.25rem; font-weight: 700; color: #1f2937; }
+        .subtitle { font-size: 0.875rem; color: var(--text-sub); margin-top: 4px; }
+        
+        .card-title-row {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
+        }
+        h3 {
+            margin: 0; font-size: 1rem; color: #374151; font-weight: 600;
+            display: flex; align-items: center;
+            border-left: 4px solid var(--primary); padding-left: 12px;
+        }
+
+        .view-toggle {
+            display: flex; background: #f3f4f6; padding: 3px; border-radius: 8px; border: 1px solid #e5e7eb;
+        }
+        .toggle-btn {
+            border: none; background: transparent; color: #6b7280; font-size: 0.75rem; font-weight: 600;
+            padding: 4px 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center;
+            transition: all 0.2s;
+        }
+        .toggle-btn:hover { color: #374151; }
+        .toggle-btn.active { background: white; color: var(--primary); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+
+        .input-wrapper {
+            display: flex; gap: 8px; background: #f9fafb; border: 1px solid var(--border);
+            border-radius: 8px; padding: 4px; transition: all 0.2s; margin-bottom: 20px;
+        }
+        .input-wrapper:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+        input { flex: 1; border: none; background: transparent; padding: 8px 12px; outline: none; font-size: 0.95rem; font-weight: 500; }
+        
+        .btn-update {
+            background: var(--primary); color: white; border: none; border-radius: 6px;
+            padding: 0 16px; font-weight: 500; cursor: pointer; transition: background 0.2s;
+        }
+        .btn-update:hover { background: #2563eb; }
+
+        .action-buttons { display: flex; gap: 12px; width: 100%; }
+        button.main-btn {
+            flex: 1; height: 44px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;
+            color: white; display: flex; align-items: center; justify-content: center; gap: 8px;
+            transition: all 0.2s; font-size: 0.95rem; white-space: nowrap;
+        }
+        button.main-btn:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(100%); }
+        .btn-start { background-color: var(--success); }
+        .btn-stop { background-color: var(--danger); }
+        .btn-reset { background-color: var(--reset); }
+
+        .status-box { margin-top: auto; padding-top: 20px; display: flex; align-items: center; gap: 10px; color: var(--text-sub); font-size: 0.875rem; border-top: 1px solid var(--border); }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #d1d5db; transition: background 0.3s; }
+        .status-dot.active { background: var(--success); box-shadow: 0 0 0 4px rgba(16,185,129,0.2); }
+
+        .radar-wrapper { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; min-height: 260px; }
+        .angle-display { position: absolute; bottom: 25px; font-size: 2rem; font-weight: 800; color: var(--primary); pointer-events: none; }
+
+        .wave-container {
+            background: #ffffff; border: 1px solid var(--border);
+            border-radius: 12px; overflow: hidden; position: relative;
+        }
+        canvas { display: block; width: 100%; }
+
+        .array-overlay {
+            position: absolute; top: 0; left: 0; height: 100%; width: 40px;
+            display: flex; flex-direction: column; pointer-events: none;
+            background: rgba(255,255,255,0.9); border-right: 1px solid #eee; z-index: 5;
+        }
+        .ch-label-box { flex: 1; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .ch-label { font-size: 10px; color: #9ca3af; font-weight: 700; padding: 2px 6px; border-radius: 4px; transition: all 0.3s; }
+        .ch-label.active { background-color: var(--danger); color: white; }
+
+        .player-bar {
+            display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+            background: #f9fafb; border-top: 1px solid var(--border);
+            opacity: 0.5; pointer-events: none; transition: opacity 0.3s; border-radius: 0 0 16px 16px;
+        }
+        .player-bar.active { opacity: 1; pointer-events: all; }
+
+        .icon-btn {
+            width: 32px; height: 32px; border-radius: 50%; border: 1px solid #d1d5db;
+            background: white; color: #374151; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s; flex-shrink: 0; font-size: 14px;
+        }
+        .icon-btn:hover { border-color: var(--primary); color: var(--primary); background: #eff6ff; }
+        .play-btn { background: var(--primary); color: white; border-color: var(--primary); }
+        .play-btn:hover { background: #2563eb; color: white; }
+
+        .time-code { font-size: 0.8rem; color: var(--text-sub); font-feature-settings: "tnum"; width: 85px; text-align: center; flex-shrink: 0; font-weight: 500; }
+        .seek-bar {
+            flex: 1; -webkit-appearance: none; height: 4px; background: #e5e7eb; border-radius: 2px; outline: none;
+        }
+        .seek-bar::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%;
+            background: var(--primary); cursor: pointer; transition: transform 0.1s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .seek-bar::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+        .ch-selector { display: flex; gap: 4px; }
+        .ch-pill {
+            padding: 2px 8px; font-size: 0.7rem; border: 1px solid #e5e7eb; border-radius: 12px;
+            background: white; color: var(--text-sub); cursor: pointer;
+        }
+        .ch-pill.selected { background: var(--primary); color: white; border-color: var(--primary); }
+
+        .target-badge { font-size: 0.7rem; color: var(--primary); background: #eff6ff; padding: 2px 10px; border-radius: 20px; font-weight: 600; border: 1px solid #bfdbfe; }
+        .energy-badge { font-size: 0.7rem; color: #d97706; background: #fffbeb; padding: 2px 10px; border-radius: 20px; font-weight: 600; border: 1px solid #fcd34d; margin-left: auto; }
+
+        #toast {
+            position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-100px);
+            background: #10b981; color: white; padding: 8px 24px; border-radius: 99px;
+            font-weight: 600; font-size: 0.9rem; box-shadow: 0 10px 20px -5px rgba(16,185,129,0.3);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 1000;
+            display: flex; align-items: center; gap: 8px;
+        }
+        #toast.show { transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+<div id="toast">
+    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+    <span id="toastMsg">操作成功</span>
+</div>
+
+<div class="container">
+
+    <div class="top-section">
+        <div class="card">
+            <div class="card-header">
+                <div style="margin-bottom:16px;">
+                    <h2>麦克风阵列目标音频提取终端</h2>
+                    <div class="subtitle">麦克风阵列</div>
+                </div>
+                <div style="font-size:0.75rem; color:var(--success); font-weight:700; background:#ecfdf5; padding:4px 10px; border-radius:20px; display:inline-block;">在线</div>
+            </div>
+
+            <div style="margin-bottom:20px;">
+                <label style="display:block; font-size:0.7rem; font-weight:700; color:#9ca3af; margin-bottom:8px; text-transform:uppercase;">目标声源类别</label>
+                <div class="input-wrapper">
+                    <input type="text" id="targetInput" list="audioSetList" value="Speech" placeholder="Type category...">
+                    <button class="btn-update" onclick="manualUpdateTarget()">修改目标</button>
+                    <datalist id="audioSetList"></datalist>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="main-btn btn-start" id="startBtn" onclick="startSystem()">
+                    <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M11.596 8.697l-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/></svg> 启动
+                </button>
+                <button class="main-btn btn-stop" id="stopBtn" onclick="stopSystem()" disabled>
+                    <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11V5A1.5 1.5 0 0 1 5 3.5z"/></svg> 停止
+                </button>
+                <button class="main-btn btn-reset" id="resetBtn" onclick="resetSystem()">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    重置
+                </button>
+            </div>
+
+            <div class="status-box">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusMsg">系统就绪，等待指令...</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>声源定位</h3>
+            <div class="radar-wrapper">
+                <canvas id="radarCanvas"></canvas>
+                <div class="angle-display" id="angleDisplay">--°</div>
+                <div id="dbDisplay" style="position:absolute; bottom: 0; font-size: 0.9rem; color: #6b7280; font-weight: 600; font-feature-settings: 'tnum';">
+                    -- dB
+                </div>
+            </div>
+        </div>
+    </div> <div class="card">
+        <div class="card-title-row">
+            <h3>原始信号</h3>
+            <div class="view-toggle">
+                <button class="toggle-btn active" id="btnRawWave" onclick="switchRawView('wave')">
+                    <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16" style="margin-right:4px"><path d="M6 13c0 1.105-1.12 2-2.5 2S1 14.105 1 13c0-1.104 1.12-2 2.5-2s2.5.896 2.5 2zm9-2c0 1.105-1.12 2-2.5 2s-2.5-.895-2.5-2 1.12-2 2.5-2 2.5.895 2.5 2zM0 6a6 6 0 1 1 12 0A6 6 0 0 1 0 6zm6.5 0a5.5 5.5 0 1 0-11 0 5.5 5.5 0 0 0 11 0zM13 3a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/></svg>波形
+                </button>
+                <button class="toggle-btn" id="btnRawSpec" onclick="switchRawView('spec')">
+                    <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16" style="margin-right:4px"><path d="M10.648 7.646a.5.5 0 0 1 .577-.093c4.171 2.213 4.171 5.608 4.171 5.948V14h-5v-6.354zM8.5 14H5V8h3.5v6zM0 14h3.5V6H0v8z"/></svg>频谱
+                </button>
+            </div>
+        </div>
+        <div class="wave-container">
+            <canvas id="rawCanvas" style="height: 180px; display:block;"></canvas>
+            <canvas id="rawSpecCanvas" style="height: 180px; display:none;"></canvas>
+        </div>
+        <div class="player-bar" id="barRaw">
+            <button class="icon-btn play-btn" id="playRaw" onclick="togglePlay('raw')">▶</button>
+            <button class="icon-btn" onclick="restartPlayer('raw')" title="重播">↺</button>
+            <button class="icon-btn" onclick="downloadAudio('raw')" title="下载音频">
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg>
+            </button>
+            <span class="time-code" id="timeRaw">0:00 / 0:00</span>
+            <input type="range" class="seek-bar" id="seekRaw" value="0" step="0.05">
+            <audio id="audioRaw" style="display:none;"></audio>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title-row">
+            <h3>目标信号 <span class="target-badge" id="targetBadge">目标: Speech</span></h3>
+            <div class="view-toggle">
+                <button class="toggle-btn active" id="btnSepWave" onclick="switchSepView('wave')">
+                    <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16" style="margin-right:4px"><path d="M6 13c0 1.105-1.12 2-2.5 2S1 14.105 1 13c0-1.104 1.12-2 2.5-2s2.5.896 2.5 2zm9-2c0 1.105-1.12 2-2.5 2s-2.5-.895-2.5-2 1.12-2 2.5-2 2.5.895 2.5 2zM0 6a6 6 0 1 1 12 0A6 6 0 0 1 0 6zm6.5 0a5.5 5.5 0 1 0-11 0 5.5 5.5 0 0 0 11 0zM13 3a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/></svg>波形
+                </button>
+                <button class="toggle-btn" id="btnSepSpec" onclick="switchSepView('spec')">
+                    <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16" style="margin-right:4px"><path d="M10.648 7.646a.5.5 0 0 1 .577-.093c4.171 2.213 4.171 5.608 4.171 5.948V14h-5v-6.354zM8.5 14H5V8h3.5v6zM0 14h3.5V6H0v8z"/></svg>频谱
+                </button>
+            </div>
+        </div>
+        <div class="wave-container">
+            <canvas id="sepCanvas" style="height: 140px; display:block;"></canvas>
+            <canvas id="sepSpecCanvas" style="height: 140px; display:none;"></canvas>
+        </div>
+        <div class="player-bar" id="barSep">
+            <button class="icon-btn play-btn" id="playSep" onclick="togglePlay('sep')">▶</button>
+            <button class="icon-btn" onclick="restartPlayer('sep')" title="重播">↺</button>
+             <button class="icon-btn" onclick="downloadAudio('sep')" title="下载音频">
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg>
+            </button>
+            <span class="time-code" id="timeSep">0:00 / 0:00</span>
+            <input type="range" class="seek-bar" id="seekSep" value="0" step="0.05">
+            <audio id="audioSep" style="display:none;"></audio>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>麦克风通道信号<span class="energy-badge" id="proximityText">等待数据...</span></h3>
+        <div class="wave-container">
+            <canvas id="arrayCanvas" style="height: 240px;"></canvas>
+            <div class="array-overlay">
+                <div class="ch-label-box"><div class="ch-label" id="lbl-0">CH0</div></div>
+                <div class="ch-label-box"><div class="ch-label" id="lbl-1">CH1</div></div>
+                <div class="ch-label-box"><div class="ch-label" id="lbl-2">CH2</div></div>
+                <div class="ch-label-box"><div class="ch-label" id="lbl-3">CH3</div></div>
+                <div class="ch-label-box"><div class="ch-label" id="lbl-4">CH4</div></div>
+                <div class="ch-label-box"><div class="ch-label" id="lbl-5">CH5</div></div>
+            </div>
+        </div>
+        <div class="player-bar" id="barArray">
+            <div class="ch-selector">
+                <button class="ch-pill selected" onclick="setArrayCh(0, this)">CH0</button>
+                <button class="ch-pill" onclick="setArrayCh(1, this)">CH1</button>
+                <button class="ch-pill" onclick="setArrayCh(2, this)">CH2</button>
+                <button class="ch-pill" onclick="setArrayCh(3, this)">CH3</button>
+                <button class="ch-pill" onclick="setArrayCh(4, this)">CH4</button>
+                <button class="ch-pill" onclick="setArrayCh(5, this)">CH5</button>
+            </div>
+            <div style="width:1px; height:20px; background:#e5e7eb; margin:0 16px;"></div>
+            <button class="icon-btn play-btn" id="playArray" onclick="togglePlay('array')">▶</button>
+            <button class="icon-btn" onclick="restartPlayer('array')" title="重播">↺</button>
+            <button class="icon-btn" onclick="downloadAudio('array')" title="下载当前通道">
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg>
+            </button>
+            <span class="time-code" id="timeArray">0:00 / 0:00</span>
+            <input type="range" class="seek-bar" id="seekArray" value="0" step="0.05">
+            <audio id="audioArray" style="display:none;"></audio>
+        </div>
+    </div>
+
+</div>
+
+<script type="module" src="app.js"></script>
+
+</body>
+</html>
