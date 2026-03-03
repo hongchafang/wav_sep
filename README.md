@@ -25,4 +25,37 @@
 ### 前端 (JavaScript)
 - **Canvas API**: 高性能的波形、频谱及雷达图实时渲染。
 - **ES6 Modules**: 模块化管理配置、绘图逻辑与交互逻辑。
+  
+## 功能
+
+https://github.com/user-attachments/assets/fc1f13a2-77eb-438a-9391-2d9d469c09c2
+
+
+https://github.com/user-attachments/assets/b19d2055-4c94-48b0-9559-5dac4bc8fbfd
+
+
+https://github.com/user-attachments/assets/a18facb0-4ec0-444e-a7bf-11b5864b1101
+
+
+
+https://github.com/user-attachments/assets/bcc1ed7c-9104-4516-b1e2-61e196017d82
+
+
+
+
+https://github.com/user-attachments/assets/36af02e4-4387-4d9b-8cb6-7b33f3476b97
+
+
+
+https://github.com/user-attachments/assets/7e01bf9a-7c1f-4d2b-b9c1-58030175b2e4
+
+
+
+https://github.com/user-attachments/assets/8ef088e0-d752-43ae-a1c6-bd121d9d349c
+
+
+
+https://github.com/user-attachments/assets/b4f3ba18-9828-4c64-ab4a-cfdabd59bc8a
+
+
 
