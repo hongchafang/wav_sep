@@ -61,7 +61,7 @@ https://github.com/user-attachments/assets/b19d2055-4c94-48b0-9559-5dac4bc8fbfd
 
 https://github.com/user-attachments/assets/a18facb0-4ec0-444e-a7bf-11b5864b1101
 
-**🎸 Music 提取演示**
+**🐦 Bird 提取演示**
 
 https://github.com/user-attachments/assets/bcc1ed7c-9104-4516-b1e2-61e196017d82
 
@@ -69,7 +69,7 @@ https://github.com/user-attachments/assets/bcc1ed7c-9104-4516-b1e2-61e196017d82
 
 https://github.com/user-attachments/assets/36af02e4-4387-4d9b-8cb6-7b33f3476b97
 
-**🐦 Bird 提取演示**
+**🎸 Music 提取演示**
 
 https://github.com/user-attachments/assets/7e01bf9a-7c1f-4d2b-b9c1-58030175b2e4
 
