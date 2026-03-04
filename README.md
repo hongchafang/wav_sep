@@ -58,15 +58,19 @@ https://github.com/user-attachments/assets/b19d2055-4c94-48b0-9559-5dac4bc8fbfd
 系统具备在复杂环境噪音（如语音、音乐混杂环境）下提取特定目标音频的能力。选定目标并启动后，目标音频的波形和频谱会与原始音频同步动态显示。
 
 **🗣️ Speech 提取演示**
+
 https://github.com/user-attachments/assets/a18facb0-4ec0-444e-a7bf-11b5864b1101
 
 **🎸 Music 提取演示**
+
 https://github.com/user-attachments/assets/bcc1ed7c-9104-4516-b1e2-61e196017d82
 
 **🐶 Dog 提取演示**
+
 https://github.com/user-attachments/assets/36af02e4-4387-4d9b-8cb6-7b33f3476b97
 
 **🐦 Bird 提取演示**
+
 https://github.com/user-attachments/assets/7e01bf9a-7c1f-4d2b-b9c1-58030175b2e4
 
 
@@ -76,8 +80,10 @@ https://github.com/user-attachments/assets/7e01bf9a-7c1f-4d2b-b9c1-58030175b2e4
 
 **📁 音频上传与处理下载**
 > 支持将本地音频文件上传至系统，处理后的检测与分离结果会直接输出到信号可视化区域，并支持结果下载。
+
 https://github.com/user-attachments/assets/8ef088e0-d752-43ae-a1c6-bd121d9d349c
 
 **📊 麦克风阵列通道监控**
 > 用于实时监控 6 通道硬件的健康状态及信号强度分布。
+
 https://github.com/user-attachments/assets/b4f3ba18-9828-4c64-ab4a-cfdabd59bc8a
